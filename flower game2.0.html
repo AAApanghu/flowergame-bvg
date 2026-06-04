@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>花花草草 · 男生女生向前冲</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #1b6b2e, #0a3b1a);
+            font-family: 'Segoe UI', 'Comic Neue', 'PingFang SC', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        .page {
+            max-width: 1800px;
+            width: 100%;
+            background: #fdf8e7;
+            border-radius: 70px;
+            box-shadow: 0 30px 40px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+        .start-container { text-align: center; padding: 30px 20px 50px; }
+        .game-title { font-size: 2rem; font-weight: 900; background: linear-gradient(135deg, #ffd966, #ffb347); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 20px; }
+        .teams-start { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; margin: 30px 0; }
+        .team-start-card { background: #fff6e5; border-radius: 60px; padding: 20px 30px; width: 250px; box-shadow: 0 20px 30px rgba(0,0,0,0.2); }
+        .team-start-card.boy { border-top: 10px solid #3b82f6; }
+        .team-start-card.girl { border-top: 10px solid #ec489a; }
+        .team-start-name { font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; }
+        .start-page-btn {
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 60px;
+            background: #f39c12;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #b45f1b;
+            width: 100%;
+            white-space: nowrap;
+        }
+        .start-page-btn:active { transform: translateY(4px); }
+        .start-page-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .ready-badge { margin-top: 15px; font-size: 1rem; padding: 8px; background: #e9e9e9; border-radius: 50px; }
+        .countdown-area { font-size: 1.6rem; font-weight: bold; background: #ffb347; display: inline-block; padding: 10px 30px; border-radius: 70px; color: white; margin-top: 15px; }
+
+        .game-container { display: none; }
+        .game-header { background: linear-gradient(145deg, #ffb347, #ff8c1a); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .score-card { background: rgba(0,0,0,0.2); border-radius: 50px; padding: 6px 20px; color: white; font-weight: bold; font-size: 1.2rem; }
+        .round-progress { background: #fff0c0; padding: 6px 25px; border-radius: 50px; font-size: 1.1rem; font-weight: bold; color: #aa5e00; }
+        .battle-arena { display: flex; flex-wrap: wrap; gap: 25px; padding: 20px 30px 35px; background: #e9f5e1; }
+        .team-card { flex: 1; min-width: 380px; background: #ffffffdd; border-radius: 60px; padding: 15px; text-align: center; }
+        .boy-card { background: linear-gradient(145deg, #c3e0ff, #a0ceff); }
+        .girl-card { background: linear-gradient(145deg, #ffd9ec, #ffb7d3); }
+        .team-name { font-size: 1.3rem; font-weight: 800; background: white; display: inline-block; padding: 5px 20px; border-radius: 50px; margin-bottom: 10px; }
+        .team-score-badge { font-size: 1.3rem; font-weight: bold; background: #2e4a22; display: inline-block; width: 90px; border-radius: 50px; color: #ffeaac; margin: 6px auto; padding: 4px; }
+        .options-row { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin: 15px 0; }
+        .option-item {
+            width: 180px;
+            background: white;
+            border-radius: 50px;
+            padding: 20px 10px;
+            cursor: pointer;
+            box-shadow: 0 12px 18px rgba(0,0,0,0.15);
+            border: 4px solid #ffcf9a;
+            position: relative;
+            transition: all 0.1s;
+        }
+        .option-item.disabled-opt {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .option-item.correct-mark {
+            border-color: #2e7d32;
+            background: #e8f5e9;
+        }
+        .option-item.wrong-mark {
+            border-color: #c62828;
+            background: #ffebee;
+        }
+        .option-img-small { width: 120px; height: 120px; object-fit: contain; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
+        .option-item div:last-child { font-size: 1.1rem; font-weight: bold; background: #f3e5c9; display: inline-block; padding: 4px 16px; border-radius: 30px; margin-top: 6px; }
+        
+        .mark-icon {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        .mark-correct {
+            background: #4caf50;
+            color: white;
+        }
+        .mark-wrong {
+            background: #f44336;
+            color: white;
+        }
+        
+        .question-area { background: #fff6e5; margin: 10px 30px; border-radius: 60px; padding: 15px; text-align: center; }
+        .leaf-big-img { max-width: 450px; max-height: 300px; object-fit: contain; background: #fef1cf; padding: 15px; border-radius: 50px; }
+        .timer-badge { background: #ff9800; display: inline-block; padding: 4px 12px; border-radius: 30px; font-weight: bold; margin-top: 6px; font-size: 0.9rem; }
+        .action-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin: 10px 20px 20px; }
+        .game-btn { font-size: 0.9rem; padding: 8px 16px; border-radius: 40px; background: #5c9e3e; color: white; border: none; cursor: pointer; }
+        .back-home-btn { background: #f39c12; }
+        .nav-btn { background: #3498db; }
+        .admin-panel { background: #f3e5c9; margin: 10px 20px 20px; border-radius: 40px; overflow: hidden; }
+        .admin-toggle { background: #cfa668; padding: 10px; text-align: center; font-weight: bold; cursor: pointer; color: white; font-size: 0.9rem; }
+        .admin-content { padding: 0 15px; max-height: 0; overflow-y: auto; transition: 0.3s; background: #fff2df; }
+        .admin-content.open { max-height: 500px; padding: 12px; }
+        .question-editor { border-bottom: 2px dashed #d9b48b; margin-bottom: 10px; padding: 8px; font-size: 0.8rem; }
+        .small-btn { background: #e67e22; border: none; border-radius: 30px; padding: 4px 10px; color: white; cursor: pointer; margin: 3px; font-size: 0.7rem; }
+        .celebrate-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center; visibility: hidden; opacity: 0; transition: 0.2s; }
+        .celebrate-overlay.show { visibility: visible; opacity: 1; }
+        .celebrate-card { background: #fff9e8; border-radius: 50px; padding: 25px 35px; text-align: center; }
+        .celebrate-card h1 { font-size: 2rem; color: #d6341e; }
+        .celebrate-card p { font-size: 1.5rem; background: gold; display: inline-block; padding: 6px 25px; border-radius: 50px; }
+        .celebrate-buttons button { font-size: 1rem; padding: 6px 16px; margin: 0 8px; background: #f39c12; border: none; border-radius: 30px; cursor: pointer; }
+        .warning-note { font-size:0.7rem; color:#aa5e00; margin-top:6px; }
+        .volume-control { margin: 8px auto; text-align: center; font-size: 0.8rem; }
+        .volume-control input { width: 160px; vertical-align: middle; }
+    </style>
+</head>
+<body>
+<div id="startPage" class="page start-container">
+    <div class="game-title">🌿 男生女生向前冲 🌸<br>花花草草大比拼</div>
+    <div class="teams-start">
+        <div class="team-start-card boy"><div class="team-start-name">👦 男生队</div><button class="start-page-btn" id="boyStartPageBtn">🚀 开始游戏</button><div id="boyReadyText" class="ready-badge">⚡ 未准备</div></div>
+        <div class="team-start-card girl"><div class="team-start-name">👧 女生队</div><button class="start-page-btn" id="girlStartPageBtn">🌸 开始游戏</button><div id="girlReadyText" class="ready-badge">🌼 未准备</div></div>
+    </div>
+    <div id="startCountdownArea" class="countdown-area"></div>
+    <div style="margin-top: 15px; font-size: 0.9rem;">✨ 任意一方点击“开始游戏”进入10秒倒计时，另一方点击可提前开始 ✨</div>
+</div>
+
+<div id="gamePage" class="page game-container">
+    <div class="game-header"><div class="score-card">👦 男生 <span id="boyTotalScore">0</span></div><div class="round-progress" id="globalRoundDisplay">第 1 / 5 题</div><div class="score-card">👧 女生 <span id="girlTotalScore">0</span></div></div>
+    <div class="question-area"><img id="currentLeafImg" class="leaf-big-img" src="https://s3.bmp.ovh/2026/06/04/qUoRW85y.png"><div id="questionHint" style="margin-top:6px; font-size:0.9rem;"></div></div>
+    <div class="battle-arena"><div class="team-card boy-card"><div class="team-name">⚡ 男生队 ⚡</div><div class="team-score-badge" id="boyLocalScore">0</div><div id="boyTimerDisplay" class="timer-badge"></div><div id="boyOptionsArea" class="options-row"></div></div>
+    <div class="team-card girl-card"><div class="team-name">🌸 女生队 🌸</div><div class="team-score-badge" id="girlLocalScore">0</div><div id="girlTimerDisplay" class="timer-badge"></div><div id="girlOptionsArea" class="options-row"></div></div></div>
+    <div class="action-buttons">
+        <button class="game-btn nav-btn" id="prevBtn" disabled>⏪ 上一题</button>
+        <button class="game-btn back-home-btn" id="backToHomeBtn">🏠 返回主页</button>
+        <button class="game-btn" id="resetGameBtn">🔄 重置比赛</button>
+        <button class="game-btn" id="resetToDefaultBtn" style="background-color:#e67e22;">📁 重置默认</button>
+    </div>
+    <div class="volume-control">
+        <span>🔊 背景音乐音量：</span>
+        <input type="range" id="bgVolume" min="0" max="100" value="70">
+        <span id="volumeValue">70%</span>
+    </div>
+    <div class="admin-panel">
+        <div class="admin-toggle" id="adminToggle">✏️ 教师编辑题库</div>
+        <div class="admin-content" id="adminContent">
+            <div id="questionsEditorList"></div>
+            <button class="small-btn" id="addQuestionBtn">➕ 增加题目</button>
+            <button class="small-btn" id="saveQuestionsBtn">💾 保存修改</button>
+            <div class="warning-note">💡 提示：修改图片或答案后，点击“保存修改”，再按 Ctrl+S 保存本文件。</div>
+            <div style="margin-top: 12px; border-top: 2px solid #d9b48b; padding-top: 10px;">
+                <div style="font-weight:bold; font-size:0.8rem;">🎵 音效设置</div>
+                <div style="font-size:0.75rem;">🎉 正确音效: <input type="text" id="correctSoundUrl" value="https://audio.jukehost.co.uk/019e8aff-6306-73e4-81fd-41d48f90b5e0" style="width:65%;"></div>
+                <div style="font-size:0.75rem;">🔄 重试音效: <input type="text" id="retrySoundUrl" value="https://audio.jukehost.co.uk/019e8b06-079e-70d6-a51b-4b8ed613b349" style="width:65%;"></div>
+                <div style="font-size:0.75rem;">🏆 胜利音效: <input type="text" id="victorySoundUrl" value="https://audio.jukehost.co.uk/019e8b02-7e63-718c-8e1b-e9f05826d67a" style="width:65%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="celebrateOverlay" class="celebrate-overlay"><div class="celebrate-card"><h1>🎉 恭喜挑战成功！ 🎉</h1><p id="winnerMessage"></p><div><button id="celebrateHomeBtn">🏠 返回主页</button><button id="celebrateAgainBtn">🔄 再来一次</button></div></div></div>
+
+<script>
+    // ==================== 题库数据 ====================
+    const IMG = {
+        圆叶子: "https://s3.bmp.ovh/2026/06/04/qUoRW85y.png",
+        三角形叶子: "https://s3.bmp.ovh/2026/06/04/9Z6xgZ3E.png",
+        爱心叶子: "https://s3.bmp.ovh/2026/06/04/ARlmp0wV.png",
+        菱形叶子: "https://s3.bmp.ovh/2026/06/04/mO4BCxcw.png",
+        椭圆形叶子: "https://s3.bmp.ovh/2026/06/04/2uUhGsCZ.png",
+        绿圆: "https://s3.bmp.ovh/2026/06/04/kDK32b69.png",
+        红圆: "https://s3.bmp.ovh/2026/06/04/7A3qdXGa.png",
+        绿爱心: "https://s3.bmp.ovh/2026/06/04/9mNxYwpU.png",
+        蓝三角: "https://s3.bmp.ovh/2026/06/04/GNQYbTSY.png",
+        黄三角: "https://s3.bmp.ovh/2026/06/04/pDcUFilw.png",
+        黄圆: "https://s3.bmp.ovh/2026/06/04/K8UkxLS0.png",
+        粉爱心: "https://s3.bmp.ovh/2026/06/04/I4htPlcV.png",
+        粉方: "https://s3.bmp.ovh/2026/06/04/Eo4OtM93.png",
+        粉菱形: "https://s3.bmp.ovh/2026/06/04/EGYXkHMz.png",
+        绿菱形: "https://s3.bmp.ovh/2026/06/04/mtiK3V6a.png",
+        蓝椭圆: "https://s3.bmp.ovh/2026/06/04/x7smn0Z3.png",
+        红椭圆: "https://s3.bmp.ovh/2026/06/04/tGsf4kSX.png",
+        红三角: "https://s3.bmp.ovh/2026/06/04/fqJ8L2Mz.png"
+    };
+
+    let QUESTION_SET = [
+        { leafImg: IMG.圆叶子, options: [IMG.绿圆, IMG.红圆, IMG.绿爱心], correctIdx: 0 },
+        { leafImg: IMG.三角形叶子, options: [IMG.蓝三角, IMG.黄三角, IMG.黄圆], correctIdx: 1 },
+        { leafImg: IMG.爱心叶子, options: [IMG.粉爱心, IMG.绿爱心, IMG.粉方], correctIdx: 0 },
+        { leafImg: IMG.菱形叶子, options: [IMG.绿圆, IMG.粉菱形, IMG.绿菱形], correctIdx: 2 },
+        { leafImg: IMG.椭圆形叶子, options: [IMG.蓝椭圆, IMG.红椭圆, IMG.红三角], correctIdx: 1 }
+    ];
+
+    let questionResults = [];
+    function initQuestionResults() {
+        questionResults = [];
+        for (let i = 0; i < QUESTION_SET.length; i++) {
+            questionResults.push({ 
+                boy: { selectedIdx: null, isCorrect: false, hasAnswered: false },
+                girl: { selectedIdx: null, isCorrect: false, hasAnswered: false }
+            });
+        }
+    }
+
+    let currentIndex = 0;
+    let boyScore = 0, girlScore = 0;
+    let gameActive = false;
+    let autoNextTimer = null;
+    let bgAudio = null, bgMusicStarted = false;
+
+    // DOM 元素
+    const startPage = document.getElementById('startPage');
+    const gamePage = document.getElementById('gamePage');
+    const boyTotal = document.getElementById('boyTotalScore');
+    const girlTotal = document.getElementById('girlTotalScore');
+    const boyLocal = document.getElementById('boyLocalScore');
+    const girlLocal = document.getElementById('girlLocalScore');
+    const roundSpan = document.getElementById('globalRoundDisplay');
+    const leafImg = document.getElementById('currentLeafImg');
+    const boyOptionsDiv = document.getElementById('boyOptionsArea');
+    const girlOptionsDiv = document.getElementById('girlOptionsArea');
+    const hintDiv = document.getElementById('questionHint');
+    const prevBtn = document.getElementById('prevBtn');
+    const backHomeBtn = document.getElementById('backToHomeBtn');
+    const resetGameBtn = document.getElementById('resetGameBtn');
+    const resetToDefaultBtn = document.getElementById('resetToDefaultBtn');
+
+    function playSound(type) {
+        let url = '';
+        if (type === 'correct') url = document.getElementById('correctSoundUrl')?.value;
+        else if (type === 'retry') url = document.getElementById('retrySoundUrl')?.value;
+        else if (type === 'victory') url = document.getElementById('victorySoundUrl')?.value;
+        if (url && url.trim()) {
+            new Audio(url).play().catch(e => console.log);
+        }
+    }
+
+    function startMusic() {
+        if (bgMusicStarted) return;
+        bgMusicStarted = true;
+        bgAudio = new Audio('https://audio.jukehost.co.uk/019e8af8-a641-7335-98ec-b91eb5986557');
+        bgAudio.loop = true;
+        bgAudio.volume = 0.7;
+        const slider = document.getElementById('bgVolume');
+        const valSpan = document.getElementById('volumeValue');
+        if (slider) {
+            slider.addEventListener('input', (e) => {
+                let v = e.target.value;
+                if (bgAudio) bgAudio.volume = v / 100;
+                valSpan.innerText = v + '%';
+            });
+        }
+        bgAudio.play().catch(e => console.log);
+    }
+    function stopMusic() {
+        if (bgAudio) { bgAudio.pause(); bgAudio.currentTime = 0; bgMusicStarted = false; }
+    }
+
+    function updateScores() {
+        boyTotal.innerText = boyScore;
+        girlTotal.innerText = girlScore;
+        boyLocal.innerText = boyScore;
+        girlLocal.innerText = girlScore;
+    }
+    function updateRound() {
+        roundSpan.innerText = `第 ${currentIndex+1} / ${QUESTION_SET.length} 题`;
+    }
+
+    function addMarkToOption(container, selectedIdx, isCorrect) {
+        const items = container.querySelectorAll('.option-item');
+        if (items[selectedIdx]) {
+            const selectedItem = items[selectedIdx];
+            const existingMark = selectedItem.querySelector('.mark-icon');
+            if (existingMark) existingMark.remove();
+            
+            const mark = document.createElement('div');
+            mark.className = 'mark-icon';
+            if (isCorrect) {
+                mark.classList.add('mark-correct');
+                mark.innerHTML = '✅';
+                selectedItem.classList.add('correct-mark');
+            } else {
+                mark.classList.add('mark-wrong');
+                mark.innerHTML = '❌';
+                selectedItem.classList.add('wrong-mark');
+            }
+            selectedItem.appendChild(mark);
+        }
+    }
+
+    // 自动进入下一题
+    function scheduleAutoNext() {
+        if (autoNextTimer) clearTimeout(autoNextTimer);
+        autoNextTimer = setTimeout(() => {
+            if (currentIndex + 1 < QUESTION_SET.length) {
+                currentIndex++;
+                loadQuestion();
+            } else {
+                finishGame();
+            }
+        }, 2000);
+    }
+
+    function renderOptions(container, opts, team) {
+        container.innerHTML = '';
+        const currentQ = QUESTION_SET[currentIndex];
+        const isBoy = (team === 'boy');
+        const result = questionResults[currentIndex][isBoy ? 'boy' : 'girl'];
+        const hasAnswered = result.hasAnswered;
+        const selectedIdx = result.selectedIdx;
+        const isCorrect = result.isCorrect;
+
+        opts.forEach((url, idx) => {
+            const div = document.createElement('div');
+            div.className = 'option-item';
+            
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'option-img-small';
+            img.onerror = () => img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="50" height="50"%3E%3Crect width="50" height="50" fill="%23ccc"/%3E%3C/svg%3E';
+            const label = document.createElement('div');
+            label.innerText = String.fromCharCode(65+idx);
+            div.appendChild(img);
+            div.appendChild(label);
+            
+            const alreadyCorrect = (hasAnswered && isCorrect);
+            if (alreadyCorrect) {
+                div.classList.add('disabled-opt');
+            } else if (gameActive) {
+                div.addEventListener('click', () => {
+                    if (!gameActive) return;
+                    if (questionResults[currentIndex][isBoy ? 'boy' : 'girl'].isCorrect) return;
+                    
+                    const correct = (idx === currentQ.correctIdx);
+                    const wasCorrect = questionResults[currentIndex][isBoy ? 'boy' : 'girl'].isCorrect;
+                    
+                    if (correct && !wasCorrect) {
+                        if (isBoy) boyScore++;
+                        else girlScore++;
+                    }
+                    
+                    if (isBoy) {
+                        questionResults[currentIndex].boy = { selectedIdx: idx, isCorrect: correct, hasAnswered: true };
+                    } else {
+                        questionResults[currentIndex].girl = { selectedIdx: idx, isCorrect: correct, hasAnswered: true };
+                    }
+                    updateScores();
+                    renderOptions(container, opts, team);
+                    
+                    if (!wasCorrect && !correct) {
+                        playSound('retry');
+                    }
+                    
+                    const boyDone = questionResults[currentIndex].boy.hasAnswered;
+                    const girlDone = questionResults[currentIndex].girl.hasAnswered;
+                    const boyCorrect = questionResults[currentIndex].boy.isCorrect;
+                    const girlCorrect = questionResults[currentIndex].girl.isCorrect;
+                    
+                    if (boyDone && girlDone && boyCorrect && girlCorrect) {
+                        playSound('correct');
+                        hintDiv.innerText = '✨ 两队都答对了！即将进入下一题 ✨';
+                        scheduleAutoNext();
+                    } else if (correct) {
+                        hintDiv.innerText = isBoy ? '🎉 男生答对！等待女生 🌸' : '🌸 女生答对！等待男生 ⚡';
+                    } else {
+                        hintDiv.innerText = isBoy ? '❌ 男生答错了，再试试看！' : '❌ 女生答错了，再试试看！';
+                    }
+                });
+            }
+            container.appendChild(div);
+        });
+        
+        if (hasAnswered && selectedIdx !== null) {
+            addMarkToOption(container, selectedIdx, isCorrect);
+        }
+    }
+
+    function loadQuestion() {
+        if (autoNextTimer) clearTimeout(autoNextTimer);
+        const q = QUESTION_SET[currentIndex];
+        leafImg.src = q.leafImg;
+        renderOptions(boyOptionsDiv, q.options, 'boy');
+        renderOptions(girlOptionsDiv, q.options, 'girl');
+        updateRound();
+        
+        const boyDone = questionResults[currentIndex].boy.hasAnswered;
+        const girlDone = questionResults[currentIndex].girl.hasAnswered;
+        const boyCorrect = questionResults[currentIndex].boy.isCorrect;
+        const girlCorrect = questionResults[currentIndex].girl.isCorrect;
+        
+        if (boyDone && girlDone && boyCorrect && girlCorrect) {
+            hintDiv.innerText = '✨ 两队都答对了！即将进入下一题 ✨';
+            scheduleAutoNext();
+        } else {
+            hintDiv.innerText = '🌿 两队都要答对才能进入下一题！';
+        }
+        if (prevBtn) prevBtn.disabled = (currentIndex === 0);
+        gameActive = true;
+    }
+
+    function prevQuestion() {
+        if (autoNextTimer) clearTimeout(autoNextTimer);
+        if (currentIndex > 0) {
+            currentIndex--;
+            loadQuestion();
+        }
+    }
+
+    function finishGame() {
+        gameActive = false;
+        if (autoNextTimer) clearTimeout(autoNextTimer);
+        let winner = '';
+        if (boyScore > girlScore) winner = '🏆 男生队获胜！ 🏆';
+        else if (girlScore > boyScore) winner = '🌸 女生队获胜！ 🌸';
+        else winner = '🤝 平局！ 都是花草小卫士 🤝';
+        
+        playSound('victory');
+        const overlay = document.getElementById('celebrateOverlay');
+        document.getElementById('winnerMessage').innerText = winner;
+        overlay.classList.add('show');
+        
+        const homeBtn = document.getElementById('celebrateHomeBtn');
+        const againBtn = document.getElementById('celebrateAgainBtn');
+        const newHome = homeBtn.cloneNode(true);
+        const newAgain = againBtn.cloneNode(true);
+        homeBtn.parentNode.replaceChild(newHome, homeBtn);
+        againBtn.parentNode.replaceChild(newAgain, againBtn);
+        
+        newHome.addEventListener('click', () => {
+            overlay.classList.remove('show');
+            stopMusic();
+            gamePage.style.display = 'none';
+            startPage.style.display = 'block';
+            resetStartPage();
+        });
+        newAgain.addEventListener('click', () => {
+            overlay.classList.remove('show');
+            stopMusic();
+            initGame();
+            startMusic();
+        });
+    }
+
+    function initGame() {
+        if (autoNextTimer) clearTimeout(autoNextTimer);
+        stopMusic();
+        boyScore = 0;
+        girlScore = 0;
+        currentIndex = 0;
+        initQuestionResults();
+        updateScores();
+        loadQuestion();
+        gameActive = true;
+    }
+
+    // 开始页面逻辑
+    let boyReady = false, girlReady = false;
+    let startTimer = null;
+    const boyStartBtn = document.getElementById('boyStartPageBtn');
+    const girlStartBtn = document.getElementById('girlStartPageBtn');
+    const boyReadyText = document.getElementById('boyReadyText');
+    const girlReadyText = document.getElementById('girlReadyText');
+    const countdownArea = document.getElementById('startCountdownArea');
+
+    function clearStartTimer() { if (startTimer) { clearInterval(startTimer); startTimer = null; } }
+    function startGameDirect() {
+        clearStartTimer();
+        countdownArea.innerText = '';
+        startPage.style.display = 'none';
+        gamePage.style.display = 'block';
+        initGame();
+        startMusic();
+    }
+    function beginCountdown() {
+        if (startTimer) clearStartTimer();
+        let sec = 10;
+        countdownArea.innerText = `⏰ 游戏开始倒计时: ${sec}秒 ⏰`;
+        startTimer = setInterval(() => {
+            sec--;
+            countdownArea.innerText = `⏰ 游戏开始倒计时: ${sec}秒 ⏰`;
+            if (sec <= 0) { clearStartTimer(); startGameDirect(); }
+        }, 1000);
+    }
+    function setTeamReady(team) {
+        if (team === 'boy' && !boyReady) {
+            boyReady = true;
+            boyReadyText.innerText = '✅ 准备中...';
+            boyStartBtn.disabled = true;
+            if (!girlReady) beginCountdown();
+            else startGameDirect();
+        } else if (team === 'girl' && !girlReady) {
+            girlReady = true;
+            girlReadyText.innerText = '✅ 准备中...';
+            girlStartBtn.disabled = true;
+            if (!boyReady) beginCountdown();
+            else startGameDirect();
+        }
+    }
+    function resetStartPage() {
+        clearStartTimer();
+        boyReady = false;
+        girlReady = false;
+        boyReadyText.innerText = '⚡ 未准备';
+        girlReadyText.innerText = '🌼 未准备';
+        boyStartBtn.disabled = false;
+        girlStartBtn.disabled = false;
+        countdownArea.innerText = '';
+        stopMusic();
+    }
+
+    boyStartBtn.addEventListener('click', () => setTeamReady('boy'));
+    girlStartBtn.addEventListener('click', () => setTeamReady('girl'));
+    if (prevBtn) prevBtn.addEventListener('click', prevQuestion);
+    backHomeBtn.addEventListener('click', () => {
+        if (autoNextTimer) clearTimeout(autoNextTimer);
+        stopMusic();
+        gamePage.style.display = 'none';
+        startPage.style.display = 'block';
+        resetStartPage();
+    });
+    resetGameBtn.addEventListener('click', () => { if (autoNextTimer) clearTimeout(autoNextTimer); stopMusic(); initGame(); startMusic(); });
+
+    function resetToDefault() {
+        QUESTION_SET = [
+            { leafImg: IMG.圆叶子, options: [IMG.绿圆, IMG.红圆, IMG.绿爱心], correctIdx: 0 },
+            { leafImg: IMG.三角形叶子, options: [IMG.蓝三角, IMG.黄三角, IMG.黄圆], correctIdx: 1 },
+            { leafImg: IMG.爱心叶子, options: [IMG.粉爱心, IMG.绿爱心, IMG.粉方], correctIdx: 0 },
+            { leafImg: IMG.菱形叶子, options: [IMG.绿圆, IMG.粉菱形, IMG.绿菱形], correctIdx: 2 },
+            { leafImg: IMG.椭圆形叶子, options: [IMG.蓝椭圆, IMG.红椭圆, IMG.红三角], correctIdx: 1 }
+        ];
+        document.getElementById('correctSoundUrl').value = 'https://audio.jukehost.co.uk/019e8aff-6306-73e4-81fd-41d48f90b5e0';
+        document.getElementById('retrySoundUrl').value = 'https://audio.jukehost.co.uk/019e8b06-079e-70d6-a51b-4b8ed613b349';
+        document.getElementById('victorySoundUrl').value = 'https://audio.jukehost.co.uk/019e8b02-7e63-718c-8e1b-e9f05826d67a';
+        saveToLocal();
+        buildEditor();
+        if (gamePage.style.display === 'block') initGame();
+        alert('已恢复默认题库和音效！');
+    }
+    if (resetToDefaultBtn) resetToDefaultBtn.addEventListener('click', resetToDefault);
+
+    function saveToLocal() {
+        localStorage.setItem('flower_questions', JSON.stringify(QUESTION_SET));
+        const sounds = {
+            correct: document.getElementById('correctSoundUrl').value,
+            retry: document.getElementById('retrySoundUrl').value,
+            victory: document.getElementById('victorySoundUrl').value
+        };
+        localStorage.setItem('flower_sounds', JSON.stringify(sounds));
+    }
+    function loadFromLocal() {
+        const savedQ = localStorage.getItem('flower_questions');
+        if (savedQ) {
+            try { let q = JSON.parse(savedQ); if (q && q.length) QUESTION_SET = q; } catch(e) {}
+        }
+        const savedS = localStorage.getItem('flower_sounds');
+        if (savedS) {
+            try {
+                let s = JSON.parse(savedS);
+                if (s.correct) document.getElementById('correctSoundUrl').value = s.correct;
+                if (s.retry) document.getElementById('retrySoundUrl').value = s.retry;
+                if (s.victory) document.getElementById('victorySoundUrl').value = s.victory;
+            } catch(e) {}
+        }
+    }
+
+    function buildEditor() {
+        const container = document.getElementById('questionsEditorList');
+        if (!container) return;
+        container.innerHTML = '';
+        QUESTION_SET.forEach((q, idx) => {
+            const div = document.createElement('div');
+            div.className = 'question-editor';
+            div.innerHTML = `<strong>第${idx+1}题</strong><br>
+            草叶图: <input type="text" class="leaf-url" value="${q.leafImg.replace(/"/g,'&quot;')}" style="width:70%"><br>
+            选项A: <input type="text" class="opt0" value="${q.options[0]}" style="width:60%"><br>
+            选项B: <input type="text" class="opt1" value="${q.options[1]}" style="width:60%"><br>
+            选项C: <input type="text" class="opt2" value="${q.options[2]}" style="width:60%"><br>
+            正确(0/1/2): <input type="number" class="correct-idx" value="${q.correctIdx}" min="0" max="2" style="width:70px">
+            <button class="small-btn delQ" data-idx="${idx}">删除此题</button>`;
+            container.appendChild(div);
+        });
+        document.querySelectorAll('.delQ').forEach(btn => {
+            btn.addEventListener('click', () => {
+                let idx = parseInt(btn.getAttribute('data-idx'));
+                QUESTION_SET.splice(idx, 1);
+                if (QUESTION_SET.length === 0) QUESTION_SET.push({ leafImg: "", options: ["", "", ""], correctIdx: 0 });
+                saveToLocal();
+                buildEditor();
+                if (gamePage.style.display === 'block') initGame();
+            });
+        });
+    }
+
+    const addBtn = document.getElementById('addQuestionBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', () => {
+            QUESTION_SET.push({ leafImg: IMG.圆叶子, options: ["url1", "url2", "url3"], correctIdx: 0 });
+            saveToLocal();
+            buildEditor();
+            if (gamePage.style.display === 'block') initGame();
+        });
+    }
+    const saveBtn = document.getElementById('saveQuestionsBtn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+            const editors = document.querySelectorAll('.question-editor');
+            let newSet = [];
+            editors.forEach(ed => {
+                let leaf = ed.querySelector('.leaf-url').value;
+                let opt0 = ed.querySelector('.opt0').value;
+                let opt1 = ed.querySelector('.opt1').value;
+                let opt2 = ed.querySelector('.opt2').value;
+                let corr = parseInt(ed.querySelector('.correct-idx').value);
+                newSet.push({ leafImg: leaf, options: [opt0, opt1, opt2], correctIdx: corr });
+            });
+            if (newSet.length) QUESTION_SET = newSet;
+            saveToLocal();
+            if (gamePage.style.display === 'block') initGame();
+            buildEditor();
+            alert('修改已保存！请按 Ctrl+S 保存此文件。');
+        });
+    }
+
+    const adminToggle = document.getElementById('adminToggle');
+    const adminContent = document.getElementById('adminContent');
+    if (adminToggle) {
+        adminToggle.addEventListener('click', () => adminContent.classList.toggle('open'));
+    }
+
+    loadFromLocal();
+    buildEditor();
+    initQuestionResults();
+    startPage.style.display = 'block';
+    gamePage.style.display = 'none';
+</script>
+</body>
+</html>
